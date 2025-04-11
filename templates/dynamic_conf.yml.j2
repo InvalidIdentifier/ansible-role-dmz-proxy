@@ -1,0 +1,268 @@
+tls:
+  options:
+    default:
+      minVersion: VersionTLS12
+      cipherSuites:
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+        - TLS_AES_128_GCM_SHA256
+        - TLS_AES_256_GCM_SHA384
+        - TLS_CHACHA20_POLY1305_SHA256
+      curvePreferences:
+        - CurveP521
+        - CurveP384
+      sniStrict: true
+
+http:
+  serversTransports:
+    ignore-self-signed:
+      insecureskipverify: true
+
+  middlewares:
+    secHeaders:
+      headers:
+        browserXssFilter: true
+        contentTypeNosniff: true
+        frameDeny: true
+        sslRedirect: true
+        #HSTS Configuration
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 31536000
+        customFrameOptionsValue: "SAMEORIGIN"
+
+  services:
+    udm:
+      loadBalancer:
+        servers:
+          - url: "https://{{ vlan_base }}.1"
+
+    node121:
+      loadBalancer:
+        servers:
+          - url: "http://{{ vlan_infra }}.121:80"
+
+    node122:
+      loadBalancer:
+        servers:
+          - url: "http://{{ vlan_infra }}.122:80"
+
+    k3s:
+      loadBalancer:
+        servers:
+          - url: "http://{{ vlan_infra }}.151:80"
+
+    3d:
+      loadBalancer:
+        servers:
+          - url: "http://{{ vlan_iot }}.253:80"
+
+  routers:
+    3d:
+      entrypoints:
+        - http
+      rule: "Host(`3d.{{ domain_old }}`) || Host(`3d.{{ domain }}`)"
+      service: 3d
+      middlewares:
+        - traefik-https-redirect@docker
+
+    3d-secure:
+      entrypoints:
+        - https
+      rule: "Host(`3d.{{ domain_old }}`) || Host(`3d.{{ domain }}`)"
+      service: 3d
+      tls: {}
+
+    udm:
+      entrypoints:
+        - http
+      rule: "Host(`udm.{{ domain_old }}`) || Host(`udm.{{ domain }}`)"
+      service: udm
+      middlewares:
+        - traefik-https-redirect@docker
+
+    udm-secure:
+      entrypoints:
+        - https
+      rule: "Host(`udm.{{ domain_old }}`) || Host(`udm.{{ domain }}`)"
+      service: udm
+      tls: {}
+
+    homeassistant:
+      entrypoints:
+        - http
+      rule: "Host(`homeassistant.{{ domain_old }}`) || Host(`homeassistant.{{ domain }}`)"
+      service: node122
+      middlewares:
+        - traefik-https-redirect@docker
+
+    homeassistant-secure:
+      entrypoints:
+        - https
+      rule: "Host(`homeassistant.{{ domain_old }}`) || Host(`homeassistant.{{ domain }}`)"
+      service: node122
+      tls: {}
+      middlewares:
+        - forward-auth-verify@docker
+
+    homeassistant-secure-ga:
+      entrypoints:
+        - https
+      rule: '((Host(`homeassistant.{{ domain_old }}`) && PathPrefix(`{{ traefik_prefix_ha_api }}`)) || (Host(`homeassistant.{{ domain_old }}`) && PathPrefix(`{{ traefik_prefix_ha_auth }}`))) || ((Host(`homeassistant.{{ domain }}`) && PathPrefix(`{{ traefik_prefix_ha_api }}`)) || (Host(`homeassistant.{{ domain }}`) && PathPrefix(`{{ traefik_prefix_ha_auth }}`)))'
+      service: node122
+      tls: {}
+
+    tasks:
+      entrypoints:
+        - http
+      rule: "Host(`tasks.{{ domain_old }}`) || Host(`tasks.{{ domain }}`)"
+      service: node122
+      middlewares:
+        - traefik-https-redirect@docker
+
+    tasks-secure:
+      entrypoints:
+        - https
+      rule: "Host(`tasks.{{ domain_old }}`) || Host(`tasks.{{ domain }}`)"
+      service: node122
+      tls: {}
+      middlewares:
+        - forward-auth-verify@docker
+
+    notify:
+      entrypoints:
+        - http
+      rule: "Host(`notify.{{ domain_old }}`) || Host(`notify.{{ domain }}`)"
+      service: node121
+      middlewares:
+        - traefik-https-redirect@docker
+
+    notify-secure:
+      entrypoints:
+        - https
+      rule: "Host(`notify.{{ domain_old }}`) || Host(`notify.{{ domain }}`)"
+      service: node121
+      tls: {}
+
+    paperless:
+      entrypoints:
+        - http
+      rule: "Host(`paperless.{{ domain_old }}`) || Host(`paperless.{{ domain }}`)"
+      service: node122
+      middlewares:
+        - traefik-https-redirect@docker
+
+    paperless-secure:
+      entrypoints:
+        - https
+      rule: "Host(`paperless.{{ domain_old }}`) || Host(`paperless.{{ domain }}`)"
+      service: node122
+      tls: {}
+      middlewares:
+        - forward-auth-verify@docker
+
+    file:
+      entrypoints:
+        - http
+      rule: "Host(`file.{{ domain_old }}`) || Host(`file.{{ domain }}`)"
+      service: node122
+      middlewares:
+        - traefik-https-redirect@docker
+
+    file-secure:
+      entrypoints:
+        - https
+      rule: "Host(`file.{{ domain_old }}`) || Host(`file.{{ domain }}`)"
+      service: node122
+      tls: {}
+      middlewares:
+        - forward-auth-verify@docker
+
+    file-secure-app:
+      entrypoints:
+        - https
+      rule: '((Host(`file.{{ domain_old }}`) && (HeadersRegexp(`User-Agent`, `{{ traefik_agent_file_01 }}`) || HeadersRegexp(`User-Agent`, `{{ traefik_agent_file_02 }}`) || HeadersRegexp(`User-Agent`, `{{ traefik_agent_file_03 }}`)))) || ((Host(`file.{{ domain }}`) && (HeadersRegexp(`User-Agent`, `{{ traefik_agent_file_01 }}`) || HeadersRegexp(`User-Agent`, `{{ traefik_agent_file_02 }}`) || HeadersRegexp(`User-Agent`, `{{ traefik_agent_file_03 }}`))))'
+      service: node122
+      tls: {}
+
+    immich:
+      entrypoints:
+        - http
+      rule: "Host(`immich.{{ domain_old }}`) || Host(`immich.{{ domain }}`)"
+      service: node122
+      middlewares:
+        - traefik-https-redirect@docker
+
+    immich-secure:
+      entrypoints:
+        - https
+      rule: "Host(`immich.{{ domain_old }}`) || Host(`immich.{{ domain }}`)"
+      service: node122
+      tls: {}
+      middlewares:
+        - forward-auth-verify@docker
+
+    immich-secure-app:
+      entrypoints:
+        - https
+      rule: '((Host(`immich.{{ domain_old }}`) && (HeadersRegexp(`{{ traefik_header_immich_01 }}`, `{{ traefik_header_immich_02 }}`)))) || ((Host(`immich.{{ domain }}`) && (HeadersRegexp(`{{ traefik_header_immich_01 }}`, `{{ traefik_header_immich_02 }}`))))'
+      service: node122
+      tls: {}
+
+    k3s:
+      entrypoints:
+        - http
+      rule: "Host(`tools.{{ domain }}`) || Host(`excalidraw.{{ domain }}`)"
+      service: k3s
+      middlewares:
+        - traefik-https-redirect@docker
+
+    k3s-secure:
+      entrypoints:
+        - https
+      rule: "Host(`tools.{{ domain }}`) || Host(`excalidraw.{{ domain }}`)"
+      service: k3s
+      tls: {}
+
+    wikijs:
+      entrypoints:
+        - http
+      rule: "Host(`wikijs.{{ domain_old }}`) || Host(`wikijs.{{ domain }}`)"
+      service: k3s
+      middlewares:
+        - traefik-https-redirect@docker
+
+    wikijs-secure:
+      entrypoints:
+        - https
+      rule: "Host(`wikijs.{{ domain_old }}`) || Host(`wikijs.{{ domain }}`)"
+      service: k3s
+      tls: {}
+
+tcp:
+  services:
+    k3sjoin:
+      loadBalancer:
+        servers:
+          - address: "{{ vlan_infra }}.151:9345"
+
+    k3sapi:
+      loadBalancer:
+        servers:
+          - address: "{{ vlan_infra }}.151:6443"
+          - address: "{{ vlan_infra }}.152:6443"
+          - address: "{{ vlan_infra }}.153:6443"
+
+  routers:
+    k3sjoin:
+      entrypoints:
+        - k3sjoin
+      rule: "HostSNI(`*`)"
+      service: k3sjoin
+
+    k3sapi:
+      entrypoints:
+        - k3sapi
+      rule: "HostSNI(`*`)"
+      service: k3sapi

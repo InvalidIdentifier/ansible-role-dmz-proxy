@@ -1,0 +1,42 @@
+name: homelab
+
+services:
+
+### Forward Auth ###
+  traefik-forward-auth:
+    image: thomseddon/traefik-forward-auth:latest
+    container_name: traefik-forward-auth
+    environment:
+      - PROVIDERS_GOOGLE_CLIENT_ID=${FWD_AUTH_PROVIDERS_GOOGLE_CLIENT_ID}
+      - PROVIDERS_GOOGLE_CLIENT_SECRET=${FWD_AUTH_PROVIDERS_GOOGLE_CLIENT_SECRET}
+      - SECRET=${FWD_AUTH_SECRET_FORWARD}
+      - AUTH_HOST=oauth.${DOMAIN}
+      - COOKIE_DOMAIN=${DOMAIN}
+      - WHITELIST=${FWD_AUTH_WHITELIST_USERS}
+      - INSECURE_COOKIE=false
+      - LOG_LEVEL=debug
+      - LIFETIME=2592000 #30Days
+    volumes:
+      - '/etc/localtime:/etc/localtime:ro'
+    dns: ["${DNS_SERVER}"]
+    network_mode: web
+    restart: unless-stopped
+    labels:
+    # Traefik
+      - traefik.enable=true
+      - traefik.http.routers.forward.entrypoints=https
+      - traefik.http.routers.forward.rule=Host(`oauth.${DOMAIN}`)
+      - traefik.http.routers.forward-secure.entrypoints=https
+      - traefik.http.routers.forward-secure.rule=Host(`oauth.${DOMAIN}`)
+      - traefik.http.routers.forward-secure.middlewares=forward-auth-verify
+      - traefik.http.routers.forward-secure.tls=true
+      - traefik.http.routers.forward-secure.service=forward
+      - traefik.http.services.forward.loadbalancer.server.port=4181
+      #Middleware
+      - 'traefik.http.middlewares.forward-auth-verify.forwardauth.address=http://traefik-forward-auth:4181'
+      - 'traefik.http.middlewares.forward-auth-verify.forwardauth.authResponseHeaders=X-Forwarded-User'
+      - traefik.http.routers.forward.service=forward
+
+networks:
+  web:
+    external: true

@@ -1,0 +1,14 @@
+---
+domain: "{{ lookup('env', 'DOMAIN') }}"
+domain_old: "{{ lookup('env', 'DOMAIN_OLD') }}"
+vlan_infra: "{{ lookup('env', 'VLAN_INFRA') }}"
+vlan_base: "{{ lookup('env', 'VLAN_BASE') }}"
+vlan_iot: "{{ lookup('env', 'VLAN_IOT') }}"
+traefik_agent_file_01: "{{ lookup('env', 'TRAEFIK_AGENT_FILE_01') }}"
+traefik_agent_file_02: "{{ lookup('env', 'TRAEFIK_AGENT_FILE_02') }}"
+traefik_agent_file_03: "{{ lookup('env', 'TRAEFIK_AGENT_FILE_03') }}"
+traefik_header_immich_01: "{{ lookup('env', 'TRAEFIK_HEADER_IMMICH_01') }}"
+traefik_header_immich_02: "{{ lookup('env', 'TRAEFIK_HEADER_IMMICH_02') }}"
+traefik_prefix_ha_api: "{{ lookup('env', 'TRAEFIK_PREFIX_HA_API') }}"
+traefik_prefix_ha_auth: "{{ lookup('env', 'TRAEFIK_PREFIX_HA_AUTH') }}"
+infra_entrypoints: {}
