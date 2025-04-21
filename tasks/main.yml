@@ -1,25 +1,25 @@
 ---
 # extend traefik_entrypoints with infra ports
 - name: extend traefik_entrypoints with infra ports
-  set_fact:
+  ansible.builtin.set_fact:
     traefik_entrypoints: "{{ traefik_entrypoints | default({}) | combine(infra_entrypoints, recursive=True) }}"
   when: infra_entrypoints | length > 0
 
 # copy traefik config
 - name: copy config for traefik
-  template:
+  ansible.builtin.template:
     src: dynamic_conf.yml.j2
     dest: /data/bindmounts/traefik/dynamic_conf.yml
 
 # copy docker-compose.yml
 - name: copy docker-compose.yml
-  template:
+  ansible.builtin.template:
     src: docker-compose-proxy.yml.j2
     dest: /home/user/docker-compose-proxy.yml
 
 # run docker container
 - name: start containers
-  command: docker compose -f /home/user/docker-compose-proxy.yml up -d --remove-orphans
+  ansible.builtin.command: docker compose -f /home/user/docker-compose-proxy.yml up -d --remove-orphans
   when: 
     - ansible_virtualization_type != "docker"
 ...
