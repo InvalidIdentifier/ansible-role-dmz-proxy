@@ -240,6 +240,21 @@ http:
       service: k3s
       tls: {}
 
+    idp:
+      entrypoints:
+        - http
+      rule: "Host(`idp.{{ domain_old }}`) || Host(`idp.{{ domain }}`)"
+      service: node121
+      middlewares:
+        - traefik-https-redirect@docker
+
+    idp-secure:
+      entrypoints:
+        - https
+      rule: "Host(`idp.{{ domain_old }}`) || Host(`idp.{{ domain }}`)"
+      service: node121
+      tls: {}
+
 tcp:
   services:
     k3sjoin:
