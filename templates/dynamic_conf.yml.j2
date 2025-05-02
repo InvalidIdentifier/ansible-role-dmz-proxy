@@ -22,7 +22,7 @@ http:
   middlewares:
     auth:
       forwardauth:
-        address: http://idp.{{ domain }}/outpost.goauthentik.io/auth/traefik
+        address: http://idp.{{ domain }}:9000/outpost.goauthentik.io/auth/traefik
         trustForwardHeader: true
         authResponseHeaders:
           - X-authentik-username
