@@ -48,11 +48,10 @@ services:
     # Traefik
       - traefik.enable=true
       - traefik.http.routers.whoami.entrypoints=http
-      - traefik.http.routers.whoami.rule=Host(`whoami.${DOMAIN}`)
+      - traefik.http.routers.whoami.rule=Host(`whoami.${DOMAIN}`) && Query(`access_code`, `{{ web_access_code}}`) && Query(`user`, `{{ web_user }}`)
       - traefik.http.routers.whoami.middlewares=traefik-https-redirect
       - traefik.http.routers.whoami-secure.entrypoints=https
-      - traefik.http.routers.whoami-secure.rule=Host(`whoami.${DOMAIN}`)
-      - traefik.http.routers.whoami-secure.middlewares=auth@file
+      - traefik.http.routers.whoami-secure.rule=Host(`whoami.${DOMAIN}`) && Query(`access_code`, `{{ web_access_code}}`) && Query(`user`, `{{ web_user }}`)
       - traefik.http.routers.whoami-secure.tls=true
       - traefik.http.routers.whoami-secure.service=whoami
       - traefik.http.services.whoami.loadbalancer.server.port=80
