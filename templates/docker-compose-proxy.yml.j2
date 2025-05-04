@@ -47,14 +47,14 @@ services:
     labels:
     # Traefik
       - traefik.enable=true
-      - traefik.http.routers.whoami.entrypoints=http
-      - traefik.http.routers.whoami.rule=Host(`whoami.${DOMAIN}`) && Query(`access_code`, `{{ web_access_code}}`) && Query(`user`, `{{ web_user }}`)
-      - traefik.http.routers.whoami.middlewares=traefik-https-redirect
-      - traefik.http.routers.whoami-secure.entrypoints=https
-      - traefik.http.routers.whoami-secure.rule=Host(`whoami.${DOMAIN}`) && Query(`access_code`, `{{ web_access_code}}`) && Query(`user`, `{{ web_user }}`)
-      - traefik.http.routers.whoami-secure.tls=true
-      - traefik.http.routers.whoami-secure.service=whoami
-      - traefik.http.services.whoami.loadbalancer.server.port=80
+      - traefik.http.routers.invitation.entrypoints=http
+      - traefik.http.routers.invitation.rule=Host(`invitation.${DOMAIN}`) && Query(`access_code`, `{{ web_access_code}}`) && Query(`user`, `{{ web_user }}`)
+      - traefik.http.routers.invitation.middlewares=traefik-https-redirect
+      - traefik.http.routers.invitation-secure.entrypoints=https
+      - traefik.http.routers.invitation-secure.rule=Host(`invitation.${DOMAIN}`) && Query(`access_code`, `{{ web_access_code}}`) && Query(`user`, `{{ web_user }}`)
+      - traefik.http.routers.invitation-secure.tls=true
+      - traefik.http.routers.invitation-secure.service=invitation
+      - traefik.http.services.invitation.loadbalancer.server.port=80
 
 networks:
   web:
